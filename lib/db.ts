@@ -114,7 +114,7 @@ export const db = {
 
   async update<T extends TableName>(table: T, id: string, patch: Partial<TableRow<T>>): Promise<TableRow<T>> {
     if (getConfiguredDataMode() === "supabase") {
-      const { data, error } = await getSupabase().from(table).update(patch).eq("id", id).select("*").single();
+      const { data, error } = await getSupabase().from(table).update(patch as never).eq("id", id).select("*").single();
       if (error) throw error;
       return data as TableRow<T>;
     }

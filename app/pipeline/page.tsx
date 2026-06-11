@@ -107,7 +107,9 @@ export default function PipelinePage() {
       {view === "kanban" ? (
         <Kanban
           columns={kanbanColumns}
-          onMove={(id, stage) => api.update(id, { stage: stage as ClinicStage })}
+          onMove={async (id, stage) => {
+            await api.update(id, { stage: stage as ClinicStage });
+          }}
           renderCard={(clinic) => (
             <Card className="cursor-grab p-4 active:cursor-grabbing" onClick={() => setSelected(clinic)}>
               <div className="flex items-start justify-between gap-2">

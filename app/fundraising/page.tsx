@@ -83,7 +83,9 @@ export default function FundraisingPage() {
       {view === "kanban" ? (
         <Kanban
           columns={kanbanColumns}
-          onMove={(id, stage) => api.update(id, { stage: stage as InvestorStage })}
+          onMove={async (id, stage) => {
+            await api.update(id, { stage: stage as InvestorStage });
+          }}
           renderCard={(investor) => (
             <Card className="cursor-grab p-4 active:cursor-grabbing" onClick={() => setSelected(investor)}>
               <div className="flex items-start justify-between gap-2">
