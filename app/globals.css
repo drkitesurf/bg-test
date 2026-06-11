@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --background: 191 49% 8%;
+  --foreground: 186 28% 93%;
+  --card: 193 46% 13%;
+  --card-foreground: 186 28% 93%;
+  --popover: 193 46% 13%;
+  --popover-foreground: 186 28% 93%;
+  --primary: 180 83% 32%;
+  --primary-foreground: 186 28% 96%;
+  --secondary: 193 36% 18%;
+  --secondary-foreground: 186 28% 93%;
+  --muted: 193 28% 18%;
+  --muted-foreground: 190 18% 70%;
+  --accent: 43 76% 56%;
+  --accent-foreground: 191 49% 8%;
+  --destructive: 0 70% 52%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 190 28% 22%;
+  --input: 190 28% 22%;
+  --ring: 180 83% 32%;
+  --radius: 0.9rem;
+}
+
+.light {
+  color-scheme: light;
+  --background: 190 50% 97%;
+  --foreground: 191 49% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 191 49% 8%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 191 49% 8%;
+  --primary: 180 83% 32%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 190 32% 91%;
+  --secondary-foreground: 191 49% 8%;
+  --muted: 190 25% 92%;
+  --muted-foreground: 190 12% 38%;
+  --accent: 43 76% 52%;
+  --accent-foreground: 191 49% 8%;
+  --destructive: 0 72% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 190 22% 84%;
+  --input: 190 22% 84%;
+  --ring: 180 83% 32%;
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply min-h-screen bg-background text-foreground antialiased;
+  background-image:
+    radial-gradient(circle at top left, rgba(14, 149, 148, 0.22), transparent 32rem),
+    radial-gradient(circle at 80% 10%, rgba(227, 178, 60, 0.14), transparent 26rem);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(14, 149, 148, 0.55) transparent;
+}
+
+@layer components {
+  .glass-card {
+    @apply border border-white/10 bg-card/90 shadow-glow backdrop-blur;
+  }
+}
