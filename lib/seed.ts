@@ -122,11 +122,13 @@ const kpiTrajectories: Record<string, number[]> = {
   runway: [6, 6, 5.8, 5.6, 5.4, 5.2, 5, 4.8],
 };
 
+const kpiDates = ["2026-04-17", "2026-04-24", "2026-05-01", "2026-05-08", "2026-05-15", "2026-05-22", "2026-05-29", "2026-06-05"];
+
 export const kpi_entries: KpiEntry[] = kpis.flatMap((kpi) =>
   kpiTrajectories[kpi.key].map((value, index) => ({
     id: `entry-${kpi.key}-${index + 1}`,
     kpi_id: kpi.id,
-    date: `2026-${String(index < 3 ? 4 : 5).padStart(2, "0")}-${String(index < 3 ? 20 + index * 7 : 4 + (index - 3) * 7).padStart(2, "0")}`,
+    date: kpiDates[index],
     value,
     note: index === 7 ? "Latest founder operating snapshot." : "Weekly demo seed.",
   })),
