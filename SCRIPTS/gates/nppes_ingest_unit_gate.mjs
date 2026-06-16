@@ -42,7 +42,7 @@ async function listSourceFiles(root) {
       return;
     }
     for (const entry of entries) {
-      if (entry.name === ".git" || entry.name === "node_modules" || entry.name === ".next") continue;
+      if (entry.name === ".git" || entry.name === "node_modules" || entry.name === ".next" || entry.name === "tests") continue;
       const path = join(dir, entry.name);
       if (entry.isDirectory()) await walk(path);
       else if (SOURCE_EXTENSIONS.has(extension(entry.name))) files.push(path);
