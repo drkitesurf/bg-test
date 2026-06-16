@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "rails": {
+    "no_phi_on_public_paths": true,
+    "rule_based_triage_before_llm": true,
+    "ab3030_disclosure_and_sb1120_hitl": true,
+    "cited_cost_rule": true,
+    "no_paid_placement": true
+  }
+}

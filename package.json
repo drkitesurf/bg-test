@@ -1,0 +1,16 @@
+{
+  "name": "theveterinarian-board-sync",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Operational scripts and gates for THEVETERINARIAN.AI directory/provider sync.",
+  "scripts": {
+    "board:sync": "node SCRIPTS/ca_dental_board_sync.mjs",
+    "gate:nppes_ingest_unit": "node SCRIPTS/gates/nppes_ingest_unit_gate.mjs",
+    "test": "node --test",
+    "preflight": "node SCRIPTS/preflight.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
