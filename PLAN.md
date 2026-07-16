@@ -387,6 +387,23 @@ regression corpus.
 
 ## Change log (append-only)
 
+- **2026-07-16** — **T-002 DONE: Bulgaria fixture importer built, verified, gated.**
+  `importer/{parse,heuristics,lexicon,emit,run}.mjs` (dependency-free Node ESM —
+  no toolchain exists yet, T-001 hasn't landed) parse `BULGARIA MFC BAG.md` into
+  a normalized event stream. Parse rate 100% (488/488 content lines), all 5 real
+  properties correctly populated (Градина/София/Bansko/Lozenec storage/synthetic
+  Unspecified), idempotent, Cyrillic-safe. Two real bugs caught by running
+  against actual data before accepting the golden fixture: a parent-id
+  self-reference bug (fixed via a proper two-pass id-assignment/emission split,
+  which also fixed a forward-reference ordering bug for hints like "Bg Bansko
+  upstairs" resolving to a property declared later in the file), and two
+  never-guess violations ("Kanaha" mistaken for a brand; a parenthetical note
+  leaking a false brand into an unrelated item) — both fixed and regression-
+  tested. 11/11 gate assertions pass (`gates/tests/importer.test.mjs`). Design
+  decisions + known limitations documented in `importer/README.md` (notably:
+  "IKEA bag in lozenec" isn't auto-nested — unmarked implicit sub-headers are
+  deliberately not inferred; `last-seen` property resolution is flagged as the
+  least-confident tier for owner review).
 - **2026-07-16** — **T-001/T-002/T-003 briefs written** to `tasks/` (scaffold →
   Cursor; fixture importer + SARE vendoring → Claude Brain-track). Loop §7 step 1
   complete for all three; next: execute T-002/T-003, hand T-001 to Cursor.
