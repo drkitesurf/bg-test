@@ -387,6 +387,9 @@ regression corpus.
 
 ## Change log (append-only)
 
+- **2026-07-16** — **T-001/T-002/T-003 briefs written** to `tasks/` (scaffold →
+  Cursor; fixture importer + SARE vendoring → Claude Brain-track). Loop §7 step 1
+  complete for all three; next: execute T-002/T-003, hand T-001 to Cursor.
 - **2026-07-16** — **v1.1: LEDGER + HOST pillars added (founder request).** §2b
   budget planner & bill manager (property/item-aware money layer, never-guess bill
   capture, seasonal-curve budgeting, cashflow horizon, records-never-moves-money
