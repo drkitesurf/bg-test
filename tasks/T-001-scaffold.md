@@ -1,7 +1,34 @@
 # T-001 — M0 Scaffold: app, worker, schema, CI
 
 **Owner:** Cursor · **Phase:** M0 · **Branch:** `feat/T-001-scaffold`
-**Reads first:** `PLAN.md` §3 (data model), §4 (architecture), §7 (loop)
+**Reads first:** `PLAN.md` §3 (data model), §4 (architecture), §7 (loop);
+`importer/README.md` (T-002, already merged); `engine/VENDORED.md` +
+`adapters/inventory/README.md` (T-003, already merged)
+
+## Context — two things already exist in this repo, build to match them, don't redo them
+1. **`importer/` (T-002, done)** parses `BULGARIA MFC BAG.md` into a
+   normalized event array (`create_property`/`create_space`/`create_container`/
+   `create_item`/`relocate_container`, each `{verb, entity_id, payload}`) — run
+   `node importer/run.mjs` to regenerate `importer/fixtures/bulgaria.expected.json`.
+   **Your `schema.sql` event table shape must be able to ingest this array
+   directly** (same verb/entity_id/payload fields, `payload.parent_id` present)
+   — don't invent a different event envelope. A seed script that loads this
+   fixture into local D1 via `wrangler d1 execute --local` is in scope for
+   this ticket (`worker/seed/seed_bulgaria.ts` or similar) and doubles as your
+   own integration test for the schema.
+2. **`engine/` (T-003, done, vendored)** is domain-free SARE infrastructure —
+   **do not import from it, modify it, or reference it from `app/`/`worker/`
+   in this ticket.** It's out of scope until M2. Just don't break the
+   boundary-lint gate (`gates/tests/sare-boundary-lint.test.mjs`) — nothing
+   you add under `app/`, `worker/`, or `importer/` needs to touch `engine/`
+   at all for T-001 to be done.
+
+Both existing gates (`gates/tests/importer.test.mjs` via `node --test`,
+`gates/tests/sare-boundary-lint.test.mjs` + `gates/tests/engine-smoke.test.mjs`
+via plain `node`) currently run standalone with zero toolchain. **Your CI
+workflow must run all three of these alongside whatever you add** — don't
+replace them, extend the pipeline to include them (they're cheap and already
+green; a CI that skips them is a regression).
 
 ## Goal
 Turn this repo into a running monorepo: React PWA + Cloudflare Worker API + D1
@@ -18,7 +45,13 @@ worker/
                           containers, items) + kv(config)
   wrangler.toml           D1 binding `DB`, R2 binding `PHOTOS` (bucket may not exist yet)
 .github/workflows/ci.yml  typecheck, lint, vitest, gates/00-run-all
-gates/tests/schema.test.ts  event-log invariants (append-only, projection rebuild)
+                          + `node --test gates/tests/importer.test.mjs`
+                          + `node gates/tests/sare-boundary-lint.test.mjs`
+                          + `node gates/tests/engine-smoke.test.mjs`
+gates/tests/schema.test.ts  event-log invariants (append-only, projection rebuild,
+                          and: importer/fixtures/bulgaria.expected.json ingests
+                          cleanly into the schema)
+worker/seed/seed_bulgaria.ts (or .mjs)  loads the importer's fixture into local D1
 package.json              npm workspaces: app, worker
 ```
 
@@ -41,6 +74,16 @@ package.json              npm workspaces: app, worker
       appends + updates projection; unauth'd → 401; missing secret → 503.
 - [ ] Projection rebuild from event log is idempotent (test proves it).
 - [ ] Zero raw hex in `app/src/**` components; dark + light both render.
+- [ ] `worker/seed/seed_bulgaria.ts` loads all events from
+      `importer/fixtures/bulgaria.expected.json` into local D1 without
+      transformation, and a projection query afterward shows the correct
+      Property→Space→Container→Item counts (cross-check against
+      `importer/README.md`'s reported numbers: 453 items, 5 real properties
+      + 1 synthetic Unspecified).
+- [ ] CI runs the two pre-existing gates (`importer.test.mjs`,
+      `sare-boundary-lint.test.mjs` + `engine-smoke.test.mjs`) and they still
+      pass — nothing in this ticket should touch `importer/` or `engine/`
+      logic, only consume the former's output shape.
 
 ## Compliance stamp
 No PHI/guest PII in this phase. No payment code. No default credentials —
