@@ -387,6 +387,29 @@ regression corpus.
 
 ## Change log (append-only)
 
+- **2026-07-16** — **T-003 DONE: SARE engine vendored from dental-network-state.**
+  `engine/` copied byte-verbatim (verified `diff -r` empty) from
+  `drkitesurf/dental-network-state` @ `9f48757d660aad73b3b9ee0a242dbf3df712c5b4`
+  — interceptor, gateway, calcification, federation/consensus, veto,
+  DAG+Ghost-Run, event-store, plus M5 modules (ambient/assumptions/bounty/
+  inventory-PO/twin/agent-tools) that rode along. Boundary-lint gate ported
+  and re-pointed at this repo's own domain vocabulary instead of dental's —
+  **caught a real bug in its own first draft**: `engine/VENDORED.md` (which
+  I wrote) named the product directly and was rejected by its own gate,
+  exactly the mistake the donor's README warns about ("this README lives
+  under engine/, so it must be vertical-neutral too") — fixed by removing
+  all product vocabulary from the file, including from its own explanatory
+  examples. `gates/tests/engine-smoke.test.mjs` exercises interceptor
+  no-op/pre-gate-short-circuit, gateway offline-degrade (no throw),
+  calcification's in-memory counter, and event-store's frozen-event
+  invariant — all against the vendored code with zero app imports.
+  `SCRIPTS/vendor_sare_engine.sh` (re-vendor + `--check` drift detection)
+  verified against both a no-drift run (real donor repo, confirmed clean)
+  and a simulated-drift run (throwaway git repo with one line changed,
+  correctly detected + exit code 2). `adapters/inventory/README.md` records
+  the seam contract for M2 (which engine injection points get filled: 
+  interceptor pre-gates/critics/calcify-counter, gateway route manifest,
+  event-store reducers) without implementing any of it yet — M3 territory.
 - **2026-07-16** — **T-002 DONE: Bulgaria fixture importer built, verified, gated.**
   `importer/{parse,heuristics,lexicon,emit,run}.mjs` (dependency-free Node ESM —
   no toolchain exists yet, T-001 hasn't landed) parse `BULGARIA MFC BAG.md` into
