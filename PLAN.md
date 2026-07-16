@@ -64,6 +64,11 @@ STOWAWAY's bet: **the inventory should think.** Three compounding differentiator
 
 **Positioning:** "Sortly knows what you own. STOWAWAY knows what you'll need."
 
+Two further pillars widen the moat from *things* to *money and guests* (§2b, §2c):
+the inventory graph is the substrate both stand on — bills attach to properties and
+items you already track; guests stay in properties whose contents, quirks, and costs
+the app already knows. No competitor owns this triangle (things + money + guests).
+
 ---
 
 ## 2. The two account modes
@@ -80,6 +85,103 @@ same guardrail as dental M5-INVENT), check-in/out to staff/customers, audit trai
 CSV/accounting export, multi-user roles. A kite school is literally HOME's data
 model + quantities + lending — that's the wedge (sell to the hobbyist, upsell the
 school they teach at).
+
+---
+
+## 2b. LEDGER — budget planner & bill manager (award-grade)
+
+Not a bolted-on expense tracker — a **property-and-item-aware money layer** that
+reuses the same SARE spine. What "award-winning" means here, concretely:
+
+**Core capabilities**
+- **Bills as first-class recurring entities**, each anchored to a Property (or the
+  account): electricity, water, internet, insurance, HOA/такса, property tax,
+  subscriptions. Fields: payee, amount (fixed | variable-with-history), currency
+  (BGN/EUR/USD — multi-currency native, ECB daily rates cached in the Worker),
+  cadence (monthly/annual/seasonal), due rule, autopay flag, grace window.
+- **Capture = the same never-guess AI rail as items**: photo/PDF/email-forward of a
+  bill → vision+LLM extracts payee/amount/due/IBAN → `confirmed:false` until tapped.
+  The 5th confirmed "ЧЕЗ → Bansko apt → electricity" **calcifies** — future ЧЕЗ bills
+  auto-file deterministically, $0.
+- **Budget planner**: envelope/category budgets per property + rollup; planned-vs-
+  actual with variance chips; seasonal intelligence (a ski-town apartment's winter
+  heating spike is *expected*, not an anomaly — the model learns each property's
+  seasonal curve and alerts on *deviation from its own curve*, not raw thresholds).
+- **Cashflow horizon**: 90-day forward ledger (known bills + learned variable
+  estimates + booking income from §2c) → "March is 640 лв short at current pace."
+- **Bill lifecycle**: upcoming → due → paid/overdue, with receipts attached to the
+  event log (same append-only provenance as items — "what did we pay for the roof
+  repair and when" is a query, not a memory).
+- **Item linkage (the differentiator)**: expenses can reference inventory —
+  the Atlantic 50L water heater's repair history lives ON the item; warranty expiry
+  from the item feeds "don't pay for this repair" alerts; per-item total-cost-of-
+  ownership emerges free. Insurance premiums reconcile against the inventory's
+  insured-value rollup ("your contents value rose 18% since the policy was set").
+
+**SARE/RSI loops**: variable-bill forecaster (learns each meter's curve) ·
+anomaly critic (bill 2.3× its seasonal norm → flag before pay) · duplicate-bill
+veto (same payee+period twice) · category calcification per payee.
+
+**Guardrails (inherited whole)**: STOWAWAY **records and predicts money; it never
+moves money.** No payment initiation in v1; any future pay-rail ships dark behind a
+default-OFF flag with server-side check. Bank-account linking (open banking) is a
+flagged, opt-in later phase — capture-first design works everywhere including BG.
+
+**Award bar**: the budget UI is dataviz-grade (variance bars, seasonal curves,
+cashflow river) in the Coastal Adventure system, dark-first, AA — the target is
+"YNAB clarity × property intelligence neither YNAB nor Sortly has."
+
+---
+
+## 2c. HOST — tourist & rental property management (multi-location)
+
+The guest-apps concept from HANDOFF.md, reborn as a **first-class module** on the
+shared data model (Properties already exist; HOST makes them rentable and the
+guest-facing surface world-class).
+
+**Owner side (multi-property mission control)**
+- **Unified booking calendar** across all properties; bookings entered manually or
+  ingested via **iCal sync (Airbnb/Booking.com export URLs)** — read-only ingest
+  first (universally supported, zero API-partner friction); channel-manager API
+  integration is a later, flagged phase. Direct-booking requests via the guest page
+  land as HITL approvals — **never auto-confirmed**.
+- **Turnover ops on the inventory graph** (the differentiator): checkout triggers a
+  cleaning/turnover task with a property-specific checklist *generated from actual
+  inventory* — "restock Nespresso pods (consumable, low), verify TV remote ×2,
+  towels ×6 present" — and every turnover is an inventory count that keeps the
+  system true. Damage/loss during a stay is an event on the item, attributable to
+  the booking.
+- **Money flows into LEDGER automatically**: booking income, cleaning costs,
+  platform fees, per-property occupancy/ADR/RevPAR and true P&L per property —
+  the triangle closing (guests → money → things).
+- Guest CRM: repeat-guest history, notes, quiet channel for "the heating in
+  Bansko" questions.
+
+**Guest side (the award-winning surface)**
+- Per-property **guest web app** (PWA, no install, QR at the door): dark-first
+  Coastal Adventure, EN/BG/RU/DE with auto-detect.
+- **Stay-scoped access**: a booking mints a time-boxed guest link (signed token,
+  auto-expires after checkout) — Wi-Fi QR, door/parking instructions, house guide,
+  appliance how-tos *generated from the property's actual inventory* ("the Midea AC
+  remote: here's the heat mode"), local weather (Open-Meteo), transport, curated
+  explore cards (owner-editable), emergency numbers.
+- **Live local intelligence**: Bansko property shows ski/lift conditions in season;
+  Santa Marina shows beach/wind. Season-aware content switching per property.
+- Guest requests (late checkout, extra towels, "the router is down") → owner inbox
+  → resolution tracked; recurring issues per property surface as maintenance
+  candidates (→ LEDGER expense when fixed, → item event on the appliance).
+- Digital guestbook + review-funnel nudge at checkout.
+
+**SARE/RSI loops**: turnover-checklist calcification (each property's checklist
+hardens from what cleaners actually confirm) · consumable burn-rates learned per
+property per season → restock forecasts · guest-question clustering ("4 guests
+asked about the water heater" → add to the guide automatically, HITL-approved) ·
+pricing *suggestions* from occupancy patterns (advisory-only, never auto-repriced).
+
+**Guardrails**: guest PII minimized + auto-purged post-stay (configurable
+retention); guest links scoped to exactly one booking's window; smart-lock/door-code
+integrations ship dark behind flags; **no payment collection from guests in v1**
+(platforms handle it; direct-booking payments = flagged later phase).
 
 ---
 
@@ -100,6 +202,23 @@ Account (mode: home|business)
             └─ provenance: every mutation event-sourced (who/when/what/why)
 Trip (destination, dates, purpose[], forecast, baggage_constraints)
 └─ PackList → PackItem (item_ref, status: suggested|confirmed|packed|returned|lost)
+
+# LEDGER (§2b)
+Bill (property_ref?, payee, amount|variable, currency, cadence, due_rule, autopay)
+└─ BillInstance (period, amount, due, status: upcoming|due|paid|overdue, receipt_ref)
+Budget (scope: account|property, category, period, planned) → variance = derived
+Expense (property_ref?, item_ref?, booking_ref?, category, amount, receipt)  ← links the triangle
+FxRate (currency, date, rate)  — cached, never live-blocking
+
+# HOST (§2c)
+Booking (property_ref, source: manual|ical|direct, guest_ref, dates, status,
+         income, fees)              ← direct requests are HITL, never auto-confirmed
+Guest (contact, language, notes, retention_policy)
+GuestLink (booking_ref, signed_token, expires_at)   ← stay-scoped, auto-expiring
+TurnoverTask (booking_ref, checklist[] ← generated from property inventory,
+              counts_confirmed, issues[])
+GuestRequest (booking_ref, text, status, resolution, item_ref?)
+PropertyGuide (property_ref, sections[] ← partly generated from inventory, HITL-edited)
 ```
 
 Key invariants (all CI-gated):
@@ -190,6 +309,29 @@ Quantities/par/reorder (HITL PO drafts only) · check-in/out ledger · roles ·
 exports (insurance PDF, CSV) · client-scoped portal. **Exit:** a kite school runs
 a season's fleet.
 
+**M4b — LEDGER (budget & bills, §2b)**
+Bill/BillInstance/Budget/Expense entities on the event log · bill capture via the
+M2 AI rail (photo/PDF → confirm) · recurring engine + due notifications · budget
+planner UI (variance, seasonal curves) · multi-currency (BGN/EUR/USD) · 90-day
+cashflow horizon · item-linked expenses (TCO on items, warranty alerts).
+**Exit:** the real Bulgaria properties' actual bills run through it for one full
+month — every bill captured, categorized (≥1 payee calcified), variance view
+correct, zero money moved.
+*Note: M4b needs only M0–M2 — it can run in parallel with M3/M4 as a separate
+Cursor lane.*
+
+**M4c — HOST (rental & tourist management, §2c)**
+Booking calendar + iCal ingest (Airbnb/Booking export URLs) · Guest/GuestLink
+(stay-scoped signed tokens) · per-property guest PWA (Wi-Fi QR, inventory-generated
+house guide, weather, explore cards, EN/BG/RU/DE) · turnover tasks generated from
+inventory · guest request inbox · booking income/fees → LEDGER · per-property
+occupancy + P&L.
+**Exit:** one real property (Santa Marina or Bansko) hosts a real stay end-to-end:
+booking ingested, guest link used by an actual guest, turnover checklist completed,
+income visible in LEDGER's property P&L.
+*Depends on M4b (money entities) + M1 (inventory). The guest PWA sub-slice can
+start as early as post-M1.*
+
 **M5 — Ecosystem & polish**
 Ghost-run "what-if" relocations · barcode/UPC · NFC tags on containers · family
 sharing · RU/DE completion · app-store PWA packaging · opt-in federated pack wisdom.
@@ -245,6 +387,13 @@ regression corpus.
 
 ## Change log (append-only)
 
+- **2026-07-16** — **v1.1: LEDGER + HOST pillars added (founder request).** §2b
+  budget planner & bill manager (property/item-aware money layer, never-guess bill
+  capture, seasonal-curve budgeting, cashflow horizon, records-never-moves-money
+  guardrail) + §2c rental/tourist management (multi-property bookings via iCal
+  ingest, stay-scoped guest PWA, inventory-generated turnover checklists + house
+  guides, income → LEDGER P&L). Data model §3 extended; phases M4b/M4c inserted
+  (M4b parallelizable after M2). Thesis widened to the things+money+guests triangle.
 - **2026-07-16** — PLAN.md v1.0 created. Baseline reset: only this repo's two MD
   files exist; HANDOFF.md demoted to spec-lore. Thesis locked: content-aware +
   SARE-adapted + travel Packer + RSI, home/business dual mode, Claude-orchestrates /
