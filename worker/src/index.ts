@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
+import { createMiddleware } from 'hono/factory';
 import type { EventEnvelope } from '../../app/src/lib/types.ts';
 import { AuthUnavailableError, issueToken, UnauthorizedError, verifyBearer } from './auth';
 import { applyEventProjection, entityTypeForVerb } from './db/project';
+import { getNode, inventorySummary, listChildren, listProperties } from './inventory';
 
 export type Bindings = {
   DB: D1Database;
@@ -28,6 +30,19 @@ function isEventEnvelope(value: unknown): value is EventEnvelope {
 
 export function createApp() {
   const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+  const requireAuth = createMiddleware<{ Bindings: Bindings; Variables: Variables }>(async (context, next) => {
+    try {
+      const actor = await verifyBearer(context.env, context.req.header('Authorization'));
+      context.set('actor', actor);
+      await next();
+    } catch (error) {
+      if (error instanceof AuthUnavailableError) {
+        return context.json({ error: 'auth_unavailable' }, 503);
+      }
+      if (error instanceof UnauthorizedError) return context.json({ error: 'unauthorized' }, 401);
+      throw error;
+    }
+  });
 
   app.get('/api/health', (context) => context.json({ ok: true as const }));
 
@@ -51,18 +66,30 @@ export function createApp() {
     }
   });
 
-  app.use('/api/events', async (context, next) => {
-    try {
-      const actor = await verifyBearer(context.env, context.req.header('Authorization'));
-      context.set('actor', actor);
-      await next();
-    } catch (error) {
-      if (error instanceof AuthUnavailableError) {
-        return context.json({ error: 'auth_unavailable' }, 503);
-      }
-      if (error instanceof UnauthorizedError) return context.json({ error: 'unauthorized' }, 401);
-      throw error;
-    }
+  app.use('/api/events', requireAuth);
+  app.use('/api/inventory/*', requireAuth);
+
+  app.get('/api/inventory/properties', async (context) =>
+    context.json({ properties: await listProperties(context.env.DB) })
+  );
+
+  app.get('/api/inventory/summary', async (context) =>
+    context.json(await inventorySummary(context.env.DB))
+  );
+
+  app.get('/api/inventory/nodes/:id', async (context) => {
+    const node = await getNode(context.env.DB, context.req.param('id'));
+    return node ? context.json(node) : context.json({ error: 'not_found' }, 404);
+  });
+
+  app.get('/api/inventory/nodes/:id/children', async (context) => {
+    const id = context.req.param('id');
+    const parent = await getNode(context.env.DB, id);
+    if (!parent) return context.json({ error: 'not_found' }, 404);
+    return context.json({
+      parent,
+      children: parent.type === 'item' ? [] : await listChildren(context.env.DB, id)
+    });
   });
 
   app.get('/api/events', async (context) => {

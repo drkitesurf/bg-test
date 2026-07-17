@@ -1,9 +1,13 @@
 import { Anchor, Moon, Sun } from 'lucide-react';
 import { useState } from 'react';
+import { InventoryBrowser } from './components/InventoryBrowser';
+import { LoginForm } from './components/LoginForm';
 import { Button } from './components/ui/button';
+import { clearToken, getToken, setToken } from './lib/auth';
 
 export function App() {
   const [dark, setDark] = useState(true);
+  const [token, setAccessToken] = useState<string | null>(() => getToken());
 
   function toggleTheme() {
     const next = !dark;
@@ -11,9 +15,19 @@ export function App() {
     document.documentElement.classList.toggle('dark', next);
   }
 
+  function authenticated(nextToken: string) {
+    setToken(nextToken);
+    setAccessToken(nextToken);
+  }
+
+  function logout() {
+    clearToken();
+    setAccessToken(null);
+  }
+
   return (
-    <main className="min-h-screen bg-background px-6 py-8 text-foreground">
-      <div className="mx-auto flex max-w-5xl flex-col gap-12">
+    <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 sm:py-8">
+      <div className="mx-auto flex max-w-4xl flex-col gap-8">
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="rounded-lg border border-border bg-card p-2 text-primary">
@@ -29,35 +43,7 @@ export function App() {
           </Button>
         </header>
 
-        <section className="grid gap-6 md:grid-cols-[1.35fr_1fr]">
-          <div className="rounded-lg border border-border bg-card p-8 text-card-foreground">
-            <p className="mb-3 text-sm font-medium text-primary">M0 · Foundation online</p>
-            <h2 className="max-w-xl text-4xl font-semibold leading-tight">
-              Your inventory should know what you will need.
-            </h2>
-            <p className="mt-5 max-w-xl text-muted-foreground">
-              The app shell, typed API, append-only event log, and offline foundation are ready for the first
-              inventory workflows.
-            </p>
-          </div>
-          <aside className="rounded-lg border border-border bg-secondary p-6 text-secondary-foreground">
-            <h3 className="font-semibold">System status</h3>
-            <dl className="mt-5 grid gap-4 text-sm">
-              <div className="flex justify-between border-b border-border pb-3">
-                <dt className="text-muted-foreground">Interface</dt>
-                <dd>Dark-first PWA</dd>
-              </div>
-              <div className="flex justify-between border-b border-border pb-3">
-                <dt className="text-muted-foreground">Storage</dt>
-                <dd>D1 + R2 ready</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Credentials</dt>
-                <dd>Fail closed</dd>
-              </div>
-            </dl>
-          </aside>
-        </section>
+        {token ? <InventoryBrowser onLogout={logout} token={token} /> : <LoginForm onAuthenticated={authenticated} />}
       </div>
     </main>
   );

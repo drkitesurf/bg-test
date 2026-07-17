@@ -148,3 +148,25 @@ export interface EventEnvelope<T extends Record<string, unknown> = Record<string
   entity_id: Identifier;
   payload: T;
 }
+
+export type InventoryNodeType = 'property' | 'space' | 'container' | 'item';
+
+export interface InventoryNodeSummary {
+  id: Identifier;
+  type: InventoryNodeType;
+  name: string;
+  child_count: number;
+  synthetic?: boolean;
+}
+
+export interface InventoryNode extends InventoryNodeSummary {
+  parent_id: Identifier | null;
+  payload: Record<string, unknown>;
+}
+
+export interface InventorySummary {
+  properties: number;
+  spaces: number;
+  containers: number;
+  items: number;
+}
