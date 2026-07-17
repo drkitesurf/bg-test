@@ -374,19 +374,36 @@ regression corpus.
 
 ---
 
-## 8. First three task briefs (next actions)
+## 8. Task briefs (next actions)
 
+### Done (M0)
 - **T-001** `tasks/T-001-scaffold.md` — M0 scaffold: Vite+TS app, Worker, D1 schema
-  (event log), CI. *(Cursor)*
+  (event log), CI. *(Cursor — merged)*
 - **T-002** `tasks/T-002-fixture-importer.md` — parse `BULGARIA MFC BAG.md` →
   normalized JSON per §3 + import gate. *(Claude — pure logic, fixture-testable)*
 - **T-003** `tasks/T-003-vendor-sare.md` — vendor `engine/` + boundary lint from
   dental-network-state at a pinned commit. *(Claude — cross-repo glue)*
 
+### Next (M1)
+- **T-004** `tasks/T-004-inventory-drilldown.md` — Property→Space→Container→Item
+  **read-only** drill-down UI over D1 projections + JWT-gated inventory GET APIs.
+  *(Cursor)* — first M1 slice; search / move / photo / CRUD split to T-005+.
+
+### Proposed follow-ons (not cut yet)
+- **T-005** — search-first UX (fuzzy / attribute / “where is”)
+- **T-006** — container move (subtree) + manual CRUD
+- **T-007** — photo capture → R2
+- (EN/BG + offline polish ride with the above or a later polish ticket)
+
 ---
 
 ## Change log (append-only)
 
+- **2026-07-16** — **T-004 brief cut (M1 first slice):**
+  `tasks/T-004-inventory-drilldown.md` — JWT-gated Property→…→Item drill-down
+  over existing D1 projections (read path only; parent_id-driven mixed children;
+  fixture acceptance 5/7/23/453). Search, container-move, photo→R2, and CRUD
+  deferred to proposed T-005–T-007. §8 updated. No implementation in this commit.
 - **2026-07-16** — **T-003 DONE: SARE engine vendored from dental-network-state.**
   `engine/` copied byte-verbatim (verified `diff -r` empty) from
   `drkitesurf/dental-network-state` @ `9f48757d660aad73b3b9ee0a242dbf3df712c5b4`
