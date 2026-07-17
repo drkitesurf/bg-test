@@ -384,13 +384,17 @@ regression corpus.
 - **T-003** `tasks/T-003-vendor-sare.md` — vendor `engine/` + boundary lint from
   dental-network-state at a pinned commit. *(Claude — cross-repo glue)*
 
-### Next (M1)
+### Done (M1 partial)
 - **T-004** `tasks/T-004-inventory-drilldown.md` — Property→Space→Container→Item
   **read-only** drill-down UI over D1 projections + JWT-gated inventory GET APIs.
-  *(Cursor)* — first M1 slice; search / move / photo / CRUD split to T-005+.
+  *(Cursor — merged PR #6)*
+
+### Next (M1)
+- **T-005** `tasks/T-005-search-first.md` — search-first UX (fuzzy / attribute /
+  “where is”) over D1 projections; hits navigate into the T-004 drill-down.
+  *(Cursor)* — second M1 slice; move / photo / CRUD remain T-006+.
 
 ### Proposed follow-ons (not cut yet)
-- **T-005** — search-first UX (fuzzy / attribute / “where is”)
 - **T-006** — container move (subtree) + manual CRUD
 - **T-007** — photo capture → R2
 - (EN/BG + offline polish ride with the above or a later polish ticket)
@@ -459,6 +463,12 @@ slotting once M1/M2 ship and real usage data exists to prioritize by.
 
 ## Change log (append-only)
 
+- **2026-07-17** — **T-005 brief cut (M1 second slice):**
+  `tasks/T-005-search-first.md` — JWT-gated search over D1 projections (fuzzy
+  name, attribute tokens, “where is” prefix); results open the existing T-004
+  drill-down (no parallel browse tree). Read-path only; no `engine/` /
+  `importer/` touch; deterministic search gate. Move / photo / CRUD stay
+  T-006–T-007. §8 updated. No implementation in this commit.
 - **2026-07-17** — **v1.2: full concept/workflow/build audit → §9 added.**
   5 blind spots (cold-start proxy vs onboarding, confirmation fatigue, the
   disaster-export reframe, EU/GDPR guest data, tree-move conflict resolution
