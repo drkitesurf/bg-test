@@ -399,6 +399,11 @@ regression corpus.
 
 ## Change log (append-only)
 
+- **2026-07-16** — **T-004 implemented:** JWT-gated read-only inventory APIs
+  (`properties`, node detail, mixed `parent_id` children, summary) plus the
+  dark-first app login and Property→Space/Container→Item browser. Fixture
+  counts and deterministic hierarchy/item-detail behavior are gate-covered;
+  search, moves, photos, CRUD, i18n, and remote deployment remain deferred.
 - **2026-07-16** — **T-004 brief cut (M1 first slice):**
   `tasks/T-004-inventory-drilldown.md` — JWT-gated Property→…→Item drill-down
   over existing D1 projections (read path only; parent_id-driven mixed children;

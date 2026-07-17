@@ -25,6 +25,11 @@ The Worker exposes:
 - `POST /api/auth/token` with `{"password":"..."}` → HS256 bearer token
 - authenticated `GET /api/events`
 - authenticated `POST /api/events` with one importer event envelope or an array of envelopes
+- authenticated read-only inventory routes:
+  - `GET /api/inventory/properties`
+  - `GET /api/inventory/nodes/:id`
+  - `GET /api/inventory/nodes/:id/children`
+  - `GET /api/inventory/summary`
 
 Configure local secrets without committing them:
 
@@ -78,3 +83,12 @@ No remote resources are created by this repository.
 
 The Bulgaria seed command intentionally targets local D1. Production fixture ingestion should be an explicit operator
 decision, not an automatic deploy step.
+
+## M1 inventory drill-down
+
+For the local Property → Space/Container/Item browser, configure `JWT_SECRET` and `AUTH_PASSWORD`, run
+`npm run seed:bulgaria`, then start `npm run dev:worker` and `npm run dev:app` in separate terminals. Log in with the
+password you set in `AUTH_PASSWORD`; the app stores its bearer token only in `sessionStorage`.
+
+The hierarchy follows projection `parent_id` values, so a location may contain mixed spaces, nested containers, and
+items. The browser is read-only. Remote D1 seeding, secret binding, and deployment remain explicit human operations.

@@ -14,7 +14,7 @@
     "typecheck": "npm run typecheck --workspaces",
     "lint": "npm run lint --workspaces && npm run lint:hex",
     "lint:hex": "node SCRIPTS/no-raw-hex.mjs",
-    "test": "npm run test --workspaces --if-present && node --test gates/tests/importer.test.mjs && node gates/tests/sare-boundary-lint.test.mjs && node gates/tests/engine-smoke.test.mjs",
+    "test": "npm run test --workspaces --if-present && npx vitest run gates/tests/*.test.ts && node --test gates/tests/importer.test.mjs && node gates/tests/sare-boundary-lint.test.mjs && node gates/tests/engine-smoke.test.mjs",
     "seed:bulgaria": "npm run seed:bulgaria --workspace worker"
   },
   "devDependencies": {
