@@ -12,7 +12,7 @@ set -euo pipefail
 SRC_REPO="${1:-}"
 MODE="${2:-}"
 
-if [ -z "$SRC_REPO" ] || [ ! -d "$SRC_REPO/.git" ]; then
+if [ -z "$SRC_REPO" ] || ! git -C "$SRC_REPO" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "Usage: $0 <path-to-dental-network-state-clone> [--check]" >&2
   exit 1
 fi
@@ -28,7 +28,7 @@ DATE="$(git -C "$SRC_REPO" log -1 --format='%ci')"
 
 if [ "$MODE" = "--check" ]; then
   echo "Checking vendored engine/ against $SRC_REPO @ $SHA ..."
-  if diff -rq "$SRC_REPO/engine" "$DEST" --exclude=VENDORED.md; then
+  if diff -rq "$SRC_REPO/engine" "$DEST" --exclude=VENDORED.md --exclude=.DS_Store; then
     echo "OK: vendored tree matches donor working tree exactly (excluding VENDORED.md)."
     exit 0
   else
