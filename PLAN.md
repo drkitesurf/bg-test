@@ -397,8 +397,76 @@ regression corpus.
 
 ---
 
+## 9. Blind spots & backlog (audit 2026-07-17)
+
+A full concept/workflow/build audit surfaced 5 gaps the plan didn't cover and
+20 candidate improvements. Full writeup: `LEARNINGS.md` (this is where every
+future audit, wrong-turn, and gate failure gets logged too — the build's own
+RSI loop, not just the app's). Disposition below; items not yet accepted stay
+backlog, re-evaluated each phase boundary.
+
+**Gaps folded into existing phases (accepted):**
+- **Cold-start.** M1's exit test is now "a *new* user reaches 50 confirmed
+  items in one sitting without typing markdown" (barcode/receipt-forward/
+  voice-walk capture), not just "the Bulgaria fixture parses." The fixture
+  stays the regression corpus; it stops being the onboarding proxy.
+- **Confirmation fatigue.** M2 adds confidence-tiered auto-accept (visibly
+  marked, undoable, never silently trusted for valuations/export) + confirm-
+  whole-container-at-once, alongside the never-guess single-item flow.
+- **Disaster export.** Promoted from "a feature" to an M1/M4b exit criterion:
+  a scheduled, encrypted, off-device export (PDF+JSON+photos) a user can
+  reach with zero access to the app or the burned house. Ships dark behind a
+  release flag (first outbound surface — §6 rule applies).
+- **EXIF stripping.** Added as an M1 photo-capture acceptance criterion, not
+  optional: GPS/metadata stripped before any photo lands in R2.
+- **Tree-conflict resolution.** Added to M0/M1 as a written spec + gate
+  fixtures *before* offline sync goes deep: move-wins rule, cycle rejection,
+  delete-vs-move precedence. Blocks "offline-first" from silently rotting.
+- **GDPR for HOST.** Added to M4c scope: consent capture, retention timer,
+  one-tap guest erasure (tombstone/crypto-shred pattern compatible with
+  append-only event log — erasure ≠ deletion of the log, deletion of the
+  *readable* PII), data-processing record.
+- **Obligations surface.** New cross-cutting concept for M4b/M4c: bills,
+  maintenance, warranties, reorders, and turnovers unify into one forward
+  timeline instead of five competing notification systems. Designed once,
+  before the modules that feed it (§2b/§2c revised to reference it rather
+  than each inventing its own due-date UI).
+- **Engine naming collision.** `engine/inventory/` (dental's HITL-PO reorder
+  module) is *not* this app's inventory — `adapters/inventory/README.md`
+  updated to call it out by name so Cursor/Claude never confuse the two.
+  Docs-only fix; the vendored file itself is untouched (would break `diff -r`
+  drift-check).
+- **Round-trip gate.** New T-00X (queued): once T-001's D1 schema lands, a
+  gate loads `importer/fixtures/bulgaria.expected.json` through the real
+  projection and asserts the rebuilt tree matches the importer's tree
+  node-for-node — catches schema/projection drift at the exact seam most
+  likely to rot silently.
+
+**New moat candidates (backlog, not yet phased):** lend/borrow tracking
+(HOME), cost-per-use analytics, maintenance scheduler, warranty/manual vault,
+QR container labels (pull forward from M5, NFC stays the premium upgrade),
+moving/relocation mode (elevates "In transit" into a real feature), donation/
+disposal tax tracking, consumables → auto shopping list. Re-evaluate for M3–M5
+slotting once M1/M2 ship and real usage data exists to prioritize by.
+
+**Operating-model changes (accepted):**
+- Merge-gate review includes a live Cloudflare Pages preview, not diff-only,
+  once M1 has UI to preview.
+- `LEARNINGS.md` is a required step 4 in §7's loop (not optional) — every PR,
+  gate failure, and audit appends an entry that can re-rank the backlog.
+
+---
+
 ## Change log (append-only)
 
+- **2026-07-17** — **v1.2: full concept/workflow/build audit → §9 added.**
+  5 blind spots (cold-start proxy vs onboarding, confirmation fatigue, the
+  disaster-export reframe, EU/GDPR guest data, tree-move conflict resolution
+  left underspecified) folded into M0–M4c phase acceptance criteria; 8 new
+  moat candidates backlogged; 2 operating-model changes (live-preview review,
+  mandatory `LEARNINGS.md`). `LEARNINGS.md` created as the build's own RSI
+  ledger. `adapters/inventory/README.md` gets a naming-collision callout
+  against vendored `engine/inventory/` (docs-only, engine untouched).
 - **2026-07-16** — **T-004 implemented:** JWT-gated read-only inventory APIs
   (`properties`, node detail, mixed `parent_id` children, summary) plus the
   dark-first app login and Property→Space/Container→Item browser. Fixture

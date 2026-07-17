@@ -1,5 +1,16 @@
 # adapters/inventory — where STOWAWAY's domain knowledge lives
 
+> **Naming collision — read this first:** `engine/inventory/index.js` is
+> **dental-network-state's** generic HITL purchase-order/reorder module
+> (par-levels, draft-PO, never-auto-purchase) — it rode along with the
+> vendored `engine/` tree and has nothing to do with *this app's* inventory
+> domain. This directory (`adapters/inventory/`) is STOWAWAY's actual
+> inventory adapter. If you're adding par-level/reorder logic for STOWAWAY's
+> own BUSINESS mode (§2 of PLAN.md), you may end up *injecting into*
+> `engine/inventory/`'s seam the same way M2 injects into the interceptor —
+> but don't confuse the vendored generic engine module with this domain
+> layer when reading code or writing prompts.
+
 `engine/` (vendored from dental-network-state, see `engine/VENDORED.md`) is
 domain-free by construction and gate-enforced (`gates/tests/sare-boundary-lint.test.mjs`).
 This directory is the other half: every place STOWAWAY's actual vocabulary
