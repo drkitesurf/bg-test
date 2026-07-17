@@ -38,7 +38,9 @@ gates/tests/importer.test.ts
 
 ## Acceptance
 - [ ] ≥95% line→Item parse rate, measured and printed by the gate.
-- [ ] All 5+ top-level locations present; nested-container cases from the gate list pass.
+- [ ] All 5 Property events are present — 4 source-declared locations plus the
+      synthetic `Unspecified` bucket for pre-location inventory; nested-container
+      cases from the gate list pass.
 - [ ] Idempotent: running twice emits identical event ids.
 - [ ] Zero fabricated attributes (spot-audit 20 random items against source lines).
 
