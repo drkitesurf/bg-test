@@ -14,6 +14,45 @@ if this file goes stale, that's the next audit's first line item.
 
 ---
 
+## 2026-07-17 — Process gap: T-001 and T-004 both merged before merge-gate review
+
+**What happened:** While the frontier-model audit (below) was running, Cursor
+merged T-001 (M0 scaffold) directly to `main` — and then, without a new brief
+being written or handed off, went ahead and shipped T-004 (M1 property
+drill-down UI) too, also merged directly. Neither PR went through §7 step 3
+("orchestrator reviews diff vs design system + gates + this plan → merge").
+I only found out because my next commit's `git push` was rejected
+(fast-forward-only), which forced a `git fetch` that surfaced both merges.
+
+**Root cause:** §7's loop describes review as a step, but nothing in the repo
+*enforces* it — there's no branch protection requiring the orchestrator's
+sign-off, and Cursor (correctly, from its own instructions) treats "the brief
+is written" as license to implement and merge, not just implement. The loop
+is procedural discipline, not a gate. T-004 additionally wasn't in `tasks/`
+as a brief before being built — it was cut *and* implemented in the same
+session, skipping the "commit the brief, then implement" split entirely.
+
+**What changed:**
+- `PLAN.md` §0 now carries a standing process note pointing here.
+- Ran the actual review retroactively: typecheck, lint, no-raw-hex, both
+  workspace builds, all vitest suites (19 assertions), and all 3 pre-existing
+  gates — all genuinely green (not re-asserted from the commit message).
+  Spot-checked the security-sensitive surface (`worker/src/auth.ts` fails
+  closed correctly: 503 unconfigured, 401 bad creds, no default password)
+  and the fidelity-sensitive surface (`project.ts`'s `relocate_container`
+  handler reads `new_parent_property_label`, matching the importer's actual
+  payload field — not a guessed/invented shape). No defects found this time,
+  but the review only happened *after* merge, by luck of timing.
+- **Standing fix:** branch protection on `main` (require the orchestrator/a
+  review status check before merge) is the real fix and is a Cloudflare/
+  GitHub-settings action item, not a code change — flagged here so it isn't
+  forgotten. Until then, the practical mitigation is: `git fetch origin main`
+  at the *start* of every orchestrator session, before assuming local state
+  matches remote — this session only caught the drift because a push forced
+  it, not because it was checked proactively.
+
+---
+
 ## 2026-07-17 — Full concept/workflow/build audit (frontier model, T-001 handed off)
 
 **What happened:** First end-to-end audit of PLAN.md + the actual repo state

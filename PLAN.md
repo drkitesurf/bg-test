@@ -1,8 +1,8 @@
-# STOWAWAY — Master Plan v1.0
+# STOWAWAY — Master Plan v1.2
 
 **The context-aware, self-improving inventory OS for homes, businesses, and travelers.**
 
-Owner: N (drkitesurf@gmail.com) · Repo: `drkitesurf/bg-test` · Last updated: 2026-07-16
+Owner: N (drkitesurf@gmail.com) · Repo: `drkitesurf/bg-test` · Last updated: 2026-07-17
 Supersedes: `HANDOFF.md` (kept as historical spec-lore; its design language + data model
 survive here, its "already built" claims do not — **assume nothing exists but this repo**).
 
@@ -14,8 +14,17 @@ survive here, its "already built" claims do not — **assume nothing exists but 
 |---|---|
 | `BULGARIA MFC BAG.md` | ✅ Real inventory fixture — ~350 items, 5 locations, deep container nesting. The seed dataset AND the acceptance test. |
 | `HANDOFF.md` | ✅ Spec-lore: Coastal Adventure design language, Property→Space→Container→Item model, EN/BG/RU/DE, Cloudflare target. Code it references is **not present**. |
-| SARE engine (`drkitesurf/dental-network-state` → `engine/`) | ✅ Built, gated, **domain-free by CI-enforced boundary lint**: interceptor pipeline, model gateway (route→provider:model with fallback chains), calcification (confirmed-path hardening), federation/consensus, veto store, DAG + ghost-run simulator. Designed to be adapted to new verticals. |
-| Everything else | ⛔ Greenfield. |
+| SARE engine (`drkitesurf/dental-network-state` → `engine/`) | ✅ Vendored verbatim, gated, **domain-free by CI-enforced boundary lint**: interceptor pipeline, model gateway (route→provider:model with fallback chains), calcification (confirmed-path hardening), federation/consensus, veto store, DAG + ghost-run simulator. **Not yet injected into the app** — `adapters/inventory/` seam is documented but unwired (M2 work). |
+| `importer/` (T-002) | ✅ Deterministic parser, `BULGARIA MFC BAG.md` → 489 events (453 items, 5 properties, 7 spaces, 23 containers, 1 relocation). 100% parse rate, 11/11 gate assertions, `importer/fixtures/bulgaria.expected.json` is the permanent regression corpus. |
+| M0 scaffold (T-001) | ✅ **Merged, reviewed 2026-07-17, all green.** Vite+React+TS+Tailwind+shadcn app (dark-first, both palettes tokenized, zero raw hex — gate-enforced) · Hono Worker (JWT auth, **fails closed**: 503 when `JWT_SECRET`/`AUTH_PASSWORD` unset, 401 on bad creds, no default password) · D1 event-sourced schema (append-only `events` table, DB triggers block UPDATE/DELETE) + 4 projection tables · `seed_bulgaria.ts` round-trips the importer's fixture into D1 with an exact-count guard (489/453/5) · CI runs typecheck→lint→build→test→all 3 pre-existing gates. Verified by actually running everything (not just reading the commit message): typecheck clean, lint clean, no-raw-hex PASS, 19 vitest assertions + 11 importer gate assertions + boundary-lint + engine-smoke all pass, both workspace builds succeed. |
+| M1 first slice (T-004) | ✅ **Merged, reviewed 2026-07-17, all green.** JWT-gated read-only inventory API (`/api/inventory/properties`, `/nodes/:id`, `/nodes/:id/children`, `/summary`) + Property→Space/Container→Item drill-down UI with breadcrumbs and login form. Projection logic verified against the real fixture shape (`relocate_container`'s `new_parent_property_label` field, `payload.parent_id` on every non-property event) — no invented event envelope. Search, container-move, photo→R2, and CRUD explicitly deferred (T-005+). |
+| Everything else (M2 content-awareness, M3 Packer, M4/M4b/M4c, M5) | ⛔ Not started. |
+
+**Process note (2026-07-17):** T-001 and T-004 both merged directly to `main`
+before the orchestrator's merge-gate review ran (§7 step 3) — the loop's
+review step isn't self-enforcing yet; it depends on someone actually gating
+before merge, not after. Both PRs turned out clean on review, but the
+process gap is real. See `LEARNINGS.md` for the standing fix.
 
 ---
 
@@ -469,6 +478,20 @@ slotting once M1/M2 ship and real usage data exists to prioritize by.
   drill-down (no parallel browse tree). Read-path only; no `engine/` /
   `importer/` touch; deterministic search gate. Move / photo / CRUD stay
   T-006–T-007. §8 updated. No implementation in this commit.
+- **2026-07-17** — **Retroactive merge-gate review: T-001 + T-004, both clean.**
+  Both merged to `main` directly (before orchestrator review — see §0 process
+  note and `LEARNINGS.md`). Reviewed after the fact by actually running
+  everything, not trusting commit messages: `npm run typecheck/lint/build`,
+  full vitest suite (19 assertions across `schema.test.ts`,
+  `inventory-drilldown.test.ts`, `worker/src/index.test.ts`), and all 3
+  pre-existing gates (importer 11/11, boundary-lint, engine-smoke) — all
+  green. Spot-checked auth fail-closed behavior (503 unconfigured, 401 bad
+  creds, no default password) and projection fidelity against the importer's
+  real event shape (`relocate_container` field names, `payload.parent_id`
+  presence) — both correct, no invented shapes. §0 ground-truth table
+  updated to reflect real state (M0 scaffold + M1 first slice now exist).
+  No defects found; the process gap (review-after-merge instead of
+  review-before-merge) is the actual finding, logged to `LEARNINGS.md`.
 - **2026-07-17** — **v1.2: full concept/workflow/build audit → §9 added.**
   5 blind spots (cold-start proxy vs onboarding, confirmation fatigue, the
   disaster-export reframe, EU/GDPR guest data, tree-move conflict resolution
