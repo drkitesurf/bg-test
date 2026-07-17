@@ -1,0 +1,30 @@
+{
+  "name": "stowaway",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "workspaces": [
+    "app",
+    "worker"
+  ],
+  "scripts": {
+    "dev:app": "npm run dev --workspace app",
+    "dev:worker": "npm run dev --workspace worker",
+    "build": "npm run build --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "lint": "npm run lint --workspaces && npm run lint:hex",
+    "lint:hex": "node SCRIPTS/no-raw-hex.mjs",
+    "test": "npm run test --workspaces --if-present && node --test gates/tests/importer.test.mjs && node gates/tests/sare-boundary-lint.test.mjs && node gates/tests/engine-smoke.test.mjs",
+    "seed:bulgaria": "npm run seed:bulgaria --workspace worker"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "@types/node": "^24.1.0",
+    "eslint": "^9.31.0",
+    "globals": "^16.3.0",
+    "typescript-eslint": "^8.38.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

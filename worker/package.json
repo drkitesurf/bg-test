@@ -1,0 +1,25 @@
+{
+  "name": "@stowaway/worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "typecheck": "tsc --noEmit --pretty false",
+    "lint": "eslint src seed --max-warnings 0",
+    "test": "vitest run",
+    "seed:bulgaria": "tsx seed/seed_bulgaria.ts"
+  },
+  "dependencies": {
+    "hono": "^4.8.10",
+    "jose": "^6.0.12"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250726.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.26.1"
+  }
+}

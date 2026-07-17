@@ -1,0 +1,12 @@
+name = "stowaway-api"
+main = "src/index.ts"
+compatibility_date = "2025-07-26"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "stowaway"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "stowaway-photos"
