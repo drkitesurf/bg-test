@@ -78,8 +78,8 @@ package.json              npm workspaces: app, worker
       `importer/fixtures/bulgaria.expected.json` into local D1 without
       transformation, and a projection query afterward shows the correct
       Property→Space→Container→Item counts (cross-check against
-      `importer/README.md`'s reported numbers: 453 items, 5 real properties
-      + 1 synthetic Unspecified).
+      `importer/README.md` and the generated fixture: 453 items, 5 Property
+      events total — 4 real properties + 1 synthetic Unspecified).
 - [ ] CI runs the two pre-existing gates (`importer.test.mjs`,
       `sare-boundary-lint.test.mjs` + `engine-smoke.test.mjs`) and they still
       pass — nothing in this ticket should touch `importer/` or `engine/`
