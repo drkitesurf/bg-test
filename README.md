@@ -68,21 +68,51 @@ node gates/tests/sare-boundary-lint.test.mjs
 node gates/tests/engine-smoke.test.mjs
 ```
 
-## Human-only Cloudflare setup and deployment
+## Cloudflare setup and deployment
 
-No remote resources are created by this repository.
+**Real infra already provisioned (2026-07-18):** the production D1 database
+exists (`stowaway`, id in `worker/wrangler.toml`) and its schema is applied —
+`events`/`properties`/`spaces`/`containers`/`items`/`kv` all live remotely.
+Roughly the first third of the Bulgaria fixture's events are seeded (partial
+— seeding was stopped partway through to avoid burning an excessive number of
+manual tool calls doing it row-by-row; finishing it is one local command, see
+below). **R2 is not yet enabled on the account** — Cloudflare gates
+first-time R2 usage behind a one-time dashboard opt-in with no API path
+(`10042: Please enable R2 through the Cloudflare Dashboard`). Photo capture
+depends on this; the rest of the app (drill-down browsing, auth, D1) does
+not.
 
-1. Create a D1 database: `npx wrangler d1 create stowaway`.
-2. Replace the all-zero `database_id` in `worker/wrangler.toml` with the returned ID.
-3. Create the R2 bucket: `npx wrangler r2 bucket create stowaway-photos`.
-4. Set `JWT_SECRET` and `AUTH_PASSWORD` with `wrangler secret put`; use long, unique values.
-5. Apply the production schema:
-   `npx wrangler d1 execute stowaway --remote --file worker/src/db/schema.sql`.
-6. From `worker/`, review and run `npx wrangler deploy`.
-7. Deploy `app/dist/` to the chosen Cloudflare Pages project after `npm run build --workspace app`.
+### Automated path (recommended): GitHub Actions
 
-The Bulgaria seed command intentionally targets local D1. Production fixture ingestion should be an explicit operator
-decision, not an automatic deploy step.
+`.github/workflows/deploy.yml` deploys the Worker (+ sets its secrets) and
+the Pages app on every push to `main`. It no-ops (not a red X) until you add
+these **repository secrets** (Settings → Secrets and variables → Actions):
+
+| Secret | What it is |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | A token with Workers Scripts:Edit, Workers KV/D1/R2:Edit, Pages:Edit permissions. Create at <https://dash.cloudflare.com/profile/api-tokens>. |
+| `CLOUDFLARE_ACCOUNT_ID` | Found on the right sidebar of any Cloudflare dashboard page. |
+| `JWT_SECRET` | A long random string, e.g. `openssl rand -hex 32`. Never reuse across environments. |
+| `AUTH_PASSWORD` | The password you'll actually log in with. Not a default — pick one. |
+
+Once all four exist, push to `main` (or run the workflow manually) and the
+app is live: the Worker at its `workers.dev` URL (or a configured route), the
+static app on Cloudflare Pages project `stowaway`.
+
+### Manual path (fallback, same steps as before)
+
+1. D1 already exists — skip `wrangler d1 create` (see above).
+2. R2: once enabled in the dashboard, `npx wrangler r2 bucket create stowaway-photos`.
+3. Set `JWT_SECRET` and `AUTH_PASSWORD` with `wrangler secret put`; use long, unique values.
+4. Finish seeding the fixture into the *remote* D1 (only local was ever a target of
+   `npm run seed:bulgaria`): adapt `worker/seed/seed_bulgaria.ts`'s wrangler call to
+   add `--remote`, or run `npx wrangler d1 execute stowaway --remote --file <path-to-generated-sql>`
+   after calling `buildSeedSql(loadFixture())` yourself.
+5. From `worker/`, review and run `npx wrangler deploy`.
+6. Deploy `app/dist/` to Cloudflare Pages after `npm run build --workspace app`.
+
+The Bulgaria seed command intentionally targets local D1 by default. Full production
+fixture ingestion was a deliberate partial/manual step this round — see the note above.
 
 ## M1 inventory drill-down
 

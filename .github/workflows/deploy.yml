@@ -1,0 +1,53 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Guarded on the one secret every step below needs. Until it's added in
+    # GitHub repo Settings -> Secrets and variables -> Actions, this job is a
+    # no-op (not a red X) so an unconfigured fork/clone doesn't look broken.
+    if: ${{ vars.DEPLOY_ENABLED == 'true' || secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace app
+
+      # Worker API (D1 + R2 bindings live in worker/wrangler.toml).
+      - name: Deploy Worker
+        working-directory: worker
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # Worker secrets are idempotent puts -- safe to re-run every deploy.
+      # Fails closed server-side (503) until these exist; see worker/src/auth.ts.
+      - name: Set Worker secrets
+        working-directory: worker
+        run: |
+          echo "${{ secrets.JWT_SECRET }}" | npx wrangler secret put JWT_SECRET
+          echo "${{ secrets.AUTH_PASSWORD }}" | npx wrangler secret put AUTH_PASSWORD
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # Static app -> Cloudflare Pages (Direct Upload). Creates the project on
+      # first deploy if it doesn't exist yet.
+      - name: Deploy Pages
+        run: npx wrangler pages deploy app/dist --project-name=stowaway --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

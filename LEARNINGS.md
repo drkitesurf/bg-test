@@ -14,6 +14,51 @@ if this file goes stale, that's the next audit's first line item.
 
 ---
 
+## 2026-07-18 — Deployment session: token-cost lesson on manual D1 seeding + a genuine infra surprise
+
+**What happened:** Asked to "finish it to completion for deployment." A
+Cloudflare Developer Platform MCP connector turned out to be available in
+this session (I hadn't checked for one earlier) — it exposes D1/R2/KV
+*resource creation and D1 querying*, but no Worker-deploy, Pages-deploy, or
+secrets-put tool. So the honest ceiling from inside this session was:
+provision real infra + apply the schema + automate the deploy pipeline
+behind secrets only the founder can supply — not a full working deploy in
+one turn, because deploying code and setting secrets both require either
+`wrangler login` (interactive) or a `CLOUDFLARE_API_TOKEN` env var, neither
+of which exist here.
+
+**Two things worth remembering:**
+1. **Manual per-statement seeding via an MCP query tool doesn't scale.**
+   The Bulgaria fixture is 984 SQL lines. Pasting them through the D1 query
+   tool 150 lines at a time cost enormous tokens for ~15% coverage before it
+   was clearly the wrong move — each call's JSON response echoes full
+   per-statement metadata (duration, size_after, rows_written...) for every
+   one of 150 statements, so the *response* cost dwarfed the actual work.
+   Stopped at ~148/489 events landed (partial, harmless — projections were
+   never rebuilt from this partial set, so remote D1 has orphaned events but
+   no visible partial data). **Correct move, in hindsight:** either (a) skip
+   remote seeding entirely and let the founder run the existing
+   `seed_bulgaria.ts` locally with `--remote` once they have wrangler login
+   (a single command, already built), or (b) if seeding via MCP is ever
+   worth doing again, batch far larger chunks per call (the whole 984-line
+   file in one call, not 150-line slices) since the tool accepts multi-
+   statement `sql` strings natively — the batching into 7 parts was an
+   unnecessary hedge against a limit that was never actually hit.
+2. **R2 is not creatable via API on a fresh account** — `d1_database_create`
+   worked immediately but `r2_bucket_create` returned Cloudflare error
+   `10042: Please enable R2 through the Cloudflare Dashboard`, a one-time
+   ToS/enablement click with no programmatic equivalent. This wasn't
+   documented anywhere in the plan (`README.md`'s prior "Human-only Cloudflare
+   setup" step 3 assumed `wrangler r2 bucket create` would just work). Now
+   flagged explicitly in `README.md` and `PLAN.md` §0 as a founder-only
+   action item, not a build gap.
+
+**Standing takeaway:** before reaching for an MCP tool to do many repetitive
+calls, check whether it accepts a single larger payload first — the D1 query
+tool did, and 6 of the 7 chunk calls made were avoidable.
+
+---
+
 ## 2026-07-17 — Process gap: T-001 and T-004 both merged before merge-gate review
 
 **What happened:** While the frontier-model audit (below) was running, Cursor

@@ -2,7 +2,7 @@
 
 **The context-aware, self-improving inventory OS for homes, businesses, and travelers.**
 
-Owner: N (drkitesurf@gmail.com) · Repo: `drkitesurf/bg-test` · Last updated: 2026-07-17
+Owner: N (drkitesurf@gmail.com) · Repo: `drkitesurf/bg-test` · Last updated: 2026-07-18
 Supersedes: `HANDOFF.md` (kept as historical spec-lore; its design language + data model
 survive here, its "already built" claims do not — **assume nothing exists but this repo**).
 
@@ -25,6 +25,21 @@ before the orchestrator's merge-gate review ran (§7 step 3) — the loop's
 review step isn't self-enforcing yet; it depends on someone actually gating
 before merge, not after. Both PRs turned out clean on review, but the
 process gap is real. See `LEARNINGS.md` for the standing fix.
+
+**Deployment (2026-07-18):** real Cloudflare infra provisioned via the
+Developer Platform MCP connector (same account as the founder's other
+production Workers) — D1 database `stowaway` created, schema applied
+remotely, ~15% of the fixture events seeded (stopped early — see
+`LEARNINGS.md`), `worker/wrangler.toml`'s `database_id` updated to the real
+one. **R2 bucket creation is blocked**: Cloudflare gates first-time R2 usage
+behind a one-time dashboard opt-in with no API path (`10042`). `.github/
+workflows/deploy.yml` added — deploys the Worker + sets its secrets + deploys
+the Pages app on every push to `main`, gated on 4 repo secrets the founder
+adds once (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `JWT_SECRET`,
+`AUTH_PASSWORD`); no-ops instead of failing until they're set. This is as
+far as "finish to completion for deployment" goes without those human-only
+secrets — see the changelog entry and `README.md`'s deployment section for
+the exact remaining steps.
 
 ---
 
@@ -472,6 +487,22 @@ slotting once M1/M2 ship and real usage data exists to prioritize by.
 
 ## Change log (append-only)
 
+- **2026-07-18** — **Real Cloudflare infra provisioned; CI/CD deploy pipeline added.**
+  Discovered a Cloudflare Developer Platform MCP connector was available in-session
+  (same account as the founder's other production Workers) — used it to provision
+  real infra rather than only writing docs about it. Created D1 database `stowaway`
+  (uuid in `worker/wrangler.toml`), applied `worker/src/db/schema.sql` to it remotely
+  (verified: all 6 tables present via `sqlite_master` query), and began seeding the
+  Bulgaria fixture (~148/489 events landed before stopping — see `LEARNINGS.md` for
+  why). R2 bucket creation failed with Cloudflare error `10042` (R2 needs a one-time
+  dashboard ToS acceptance with no API equivalent) — documented as a founder-only
+  blocker in `README.md`. Added `.github/workflows/deploy.yml`: deploys the Worker,
+  sets its two secrets, and deploys the Pages app on every push to `main` — gated on
+  4 repository secrets (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `JWT_SECRET`,
+  `AUTH_PASSWORD`) so it no-ops rather than failing red until the founder adds them.
+  `README.md`'s deployment section rewritten to lead with this automated path and
+  keep the manual wrangler steps as fallback. This is the practical ceiling of
+  "finish it for deployment" without those four founder-only secrets.
 - **2026-07-17** — **T-005 brief cut (M1 second slice):**
   `tasks/T-005-search-first.md` — JWT-gated search over D1 projections (fuzzy
   name, attribute tokens, “where is” prefix); results open the existing T-004

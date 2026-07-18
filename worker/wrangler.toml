@@ -5,7 +5,7 @@ compatibility_date = "2025-07-26"
 [[d1_databases]]
 binding = "DB"
 database_name = "stowaway"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "7e65545e-dbc1-42f0-85d9-704c1bb63fcc"
 
 [[r2_buckets]]
 binding = "PHOTOS"
